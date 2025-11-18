@@ -7,8 +7,23 @@
 	"name": "hypderdrive-bench",
 	"main": "src/index.ts",
 	"compatibility_date": "2025-11-18",
+	"compatibility_flags": ["nodejs_compat"],
 	"observability": {
 		"enabled": true
+	},
+	"hyperdrive": [
+		{
+			"binding": "HYPERDRIVE_WITH_PGBOUNCER",
+			"id": "42f167fad79c40d1a62690a1b86e6d9b"
+		}
+	],
+	/**
+	 * Environment Variables
+	 * Note: DATABASE_URL should be set as a secret using:
+	 * wrangler secret put DATABASE_URL
+	 */
+	"vars": {
+		// "DATABASE_URL": "your-connection-string-here" // Use secrets instead for sensitive data
 	}
 	/**
 	 * Smart Placement
