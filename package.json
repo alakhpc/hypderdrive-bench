@@ -1,5 +1,5 @@
 {
-	"name": "hypderdrive-bench",
+	"name": "hypderdrive-bench-2",
 	"version": "0.0.0",
 	"private": true,
 	"scripts": {
@@ -16,6 +16,7 @@
 		"wrangler": "^4.49.0"
 	},
 	"dependencies": {
+		"@neondatabase/serverless": "^1.0.2",
 		"@types/pg": "^8.15.6",
 		"pg": "^8.16.3"
 	}

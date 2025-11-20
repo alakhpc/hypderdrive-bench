@@ -1,6 +1,7 @@
-import { Client } from 'pg';
+import { Client as PgClient } from 'pg';
+import { Client as NeonClient, neonConfig } from '@neondatabase/serverless';
 
-async function runBenchmark(connectionString: string, runs: number = 10) {
+async function runBenchmark(clientFactory: () => PgClient | NeonClient, runs: number = 10) {
 	const connectionTimes: number[] = [];
 	const queryTimes: number[] = [];
 	const teardownTimes: number[] = [];
@@ -9,8 +10,10 @@ async function runBenchmark(connectionString: string, runs: number = 10) {
 	for (let i = 0; i < runs; i++) {
 		const runStart = performance.now();
 
+		// Create a new client for each run
+		const client = clientFactory();
+
 		// Measure connection establishment
-		const client = new Client({ connectionString });
 		const connectStart = performance.now();
 		await client.connect();
 		const connectEnd = performance.now();
@@ -53,14 +56,23 @@ export default {
 		const url = new URL(request.url);
 		const runs = parseInt(url.searchParams.get('runs') || '10', 10);
 
-		const directWithPgbouncer = await runBenchmark(env.DATABASE_URL, runs);
-		const hyperdriveWithPgbouncer = await runBenchmark(env.HYPERDRIVE_WITH_PGBOUNCER.connectionString, runs);
+		// Configure neonConfig for PlanetScale compatibility
+		neonConfig.pipelineConnect = false;
+		neonConfig.wsProxy = (host, port) => `${host}/v2?address=${host}:${port}`;
+
+		const directWithPgbouncer = await runBenchmark(() => new PgClient({ connectionString: env.DATABASE_URL }), runs);
+		const hyperdriveWithPgbouncer = await runBenchmark(
+			() => new PgClient({ connectionString: env.HYPERDRIVE_WITH_PGBOUNCER.connectionString }),
+			runs
+		);
+		const neonServerlessDriver = await runBenchmark(() => new NeonClient(env.DATABASE_URL), runs);
 
 		return Response.json({
 			runs,
 			results: {
 				directWithPgbouncer,
 				hyperdriveWithPgbouncer,
+				neonServerlessDriver,
 			},
 		});
 	},
